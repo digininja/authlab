@@ -13,7 +13,7 @@ First you will need Go setup on your machine, I'll leave that up to you to work 
 Once you have a working version, you can get the lab by running:
 
 ```
-mkdir ~/go/src/github/digininja/
+mkdir -p ~/go/src/github/digininja/
 cd ~/go/src/github/digininja/
 git clone https://github.com/digininja/authlab
 ```
