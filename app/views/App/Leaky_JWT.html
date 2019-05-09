@@ -1,0 +1,46 @@
+{{set . "title" "Leaky JWT"}}
+{{template "header.html" .}}
+
+<h1>Leaky JWT</h1>
+
+<p>
+	Signed JWTs may look like secret data but are easy to decode. When the developer put this together, they just pulled the whole user object out of the database and put it into the token rather than only including the information required.
+</p>
+
+<p>
+	You have acquired the following token from the local storage of your victim, decode it and use the information to login below.
+</p>
+<p>
+	<textarea class="jwt_textarea" id="leaky_jwt_textbox">{{.tokenString}}</textarea>
+</p>
+<p>
+	If you need help decoding the token, this is a good resource: <a href="https://jwt.io">JWT.IO</a>.
+</p>
+
+<p>
+	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landleakyjwt">walkthrough</a>.
+</p>
+
+<h2>Leaky Login</h2>
+
+{{ if .flash.success }}
+	<p><strong>Login success, welcome Joe</strong></p>
+{{ else }}
+	<p class="error">
+		{{.flash.error}}
+	</p>
+
+	<form method="post" action="/Leaky_JWT_Login">
+		{{with $field := field "username" .}}
+			<label for="username">Username</label> <input type="text" id="username" name="username" value="{{$field.Flash}}" autofocus /><br />
+		{{end}}
+		<label for="password">Password</label> <input type="password" id="password" name="password" value="" /><br />
+		<input type="submit" value="Login" />
+	</form>
+{{ end}}
+
+<p>
+	<a href="/">Back to home</a>
+</p>
+
+{{template "footer.html" .}}

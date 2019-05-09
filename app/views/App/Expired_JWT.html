@@ -1,0 +1,47 @@
+{{set . "title" "Expired and Not Yet Valid JWTs"}}
+{{template "header.html" .}}
+
+<h1>Expired and Not Yet Valid JWTs</h1>
+
+<p>
+	If you check the <a href="https://tools.ietf.org/html/rfc7519#section-4.1">Registered Claim Names</a> section of the JSON Web Token RFC</a>, there are two time based claims, "exp" (Expiration Time) and "nbf" (Not Before)
+</p>
+
+<p>
+	The challenge here is not a difficult one, decode the following two JWTs and check their "exp" and "nbf" claims, decide whether they should be accepted or not, and then submit them to form below and see whether you were correct.
+</p>
+<p>
+	<textarea class="jwt_textarea" id="leaky_jwt_textbox">{{.tokenString}}</textarea>
+</p>
+<p>
+	If you need help decoding the token, this is a good resource: <a href="https://jwt.io">JWT.IO</a>.
+</p>
+
+<p>
+	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landexpiredjwt">walkthrough</a>.
+</p>
+
+<h2>Who Wants To Live Forever?</h2>
+
+{{ if .flash.success }}
+	<p><strong>Login success, welcome Joe</strong></p>
+{{ else }}
+	<p class="error">
+		{{.flash.error}}
+	</p>
+
+	<form method="post" action="/Leaky_JWT_Login">
+		{{with $field := field "username" .}}
+			<label for="username">Username</label> <input type="text" id="username" name="username" value="{{$field.Flash}}" autofocus /><br />
+		{{end}}
+		<label for="password">Password</label> <input type="password" id="password" name="password" value="" /><br />
+		<input type="submit" value="Login" />
+	</form>
+{{ end}}
+
+<p>
+	<a href="/">Back to home</a>
+</p>
+
+{{template "footer.html" .}}
+

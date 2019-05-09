@@ -1,0 +1,53 @@
+{{set . "title" "Auth1"}}
+{{template "header.html" .}}
+
+<h1>CVE-2019-7644 - JWT Signature Disclosure</h1>
+
+<p>
+	This challenge is based on the Auth0 vulnerability <a href="https://auth0.com/docs/security/bulletins/cve-2019-7644">CVE-2019-7644</a>.
+</p>
+
+<p>
+	Update the JWT to make yourself an administrator and have it accepted by the system.
+</p>
+<p>
+	<textarea class="jwt_textarea" id="leaky_jwt_textbox">{{.tokenString}}</textarea>
+</p>
+
+<p>
+	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landauth1">walkthrough</a>.
+</p>
+
+<h2>Auth1</h2>
+
+{{ if .flash.success }}
+	<p>
+		<strong>Login Successful</strong>
+	</p>
+	<p>
+		{{.flash.success}}
+	</p>
+	<p><a href="/Auth1">Try again</a></p>
+{{ else }}
+	{{ if .flash.error }}
+		<p>
+			<strong>The login failed</strong>
+		</p>
+		<p class="error">
+			{{.flash.error}}
+		</p>
+	{{ end }}
+
+	<form method="post" action="/Auth1_Login">
+		{{with $field := field "jwt" .}}
+			<label for="jwt">JWT</label> <textarea class="jwt_textarea" id="jwt" name="jwt" autofocus>{{$field.Flash}}</textarea/><br />
+		{{end}}
+		<input type="submit" value="Login" />
+	</form>
+{{ end}}
+
+<p>
+	<a href="/">Back to home</a>
+</p>
+
+{{template "footer.html" .}}

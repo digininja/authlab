@@ -1,0 +1,40 @@
+{{set . "title" "Timing Attacks"}}
+{{template "header.html" .}}
+
+<h1>Timing Attacks</h1>
+
+<p>
+	A good login system does not disclose whether it is the username or password that is wrong when a login fails, but sometimes the information is leaked through a side-channel. One approach is to monitor the time taken for the request to be processed, if the application does additional processing when a valid username is provided, the extra time taken may be noticeable. The implementation of this login form is not the best so you should be able to see a difference between a correct username and an incorrect one.
+</p>
+<p>
+	There are four valid usernames, all of which can be found in the following two name lists - <a href="https://www.babble.com/pregnancy/1000-most-popular-boy-names/">Boys</a> <a href="https://www.babble.com/pregnancy/1000-most-popular-girl-names/">Girls</a>.
+</p>
+<p>
+	<strong>There are no correct passwords, the login will always fail, you are only trying to find usernames.</strong>
+</p>
+
+<p>
+	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landtimingattacks">walkthrough</a>.
+</p>
+
+<h2>Clocking In</h2>
+
+{{ if .flash.error }}
+	<p class="error">
+		<strong>Login Failed</strong>
+	</p>
+{{ end }}
+
+<form method="post" action="/Timing_Login">
+	{{with $field := field "username" .}}
+		<label for="username">Username</label> <input type="text" id="username" name="username" value="{{$field.Flash}}" autofocus /><br />
+	{{end}}
+	<label for="password">Password</label> <input type="password" id="password" name="password" value="" /><br />
+	<input type="submit" value="Login" />
+</form>
+
+<p>
+	<a href="/">Back to home</a>
+</p>
+
+{{template "footer.html" .}}

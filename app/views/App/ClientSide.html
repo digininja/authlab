@@ -1,0 +1,34 @@
+{{set . "title" "Client Side"}}
+{{template "header.html" .}}
+
+<h1>Client Side</h1>
+
+<p>
+	Authentication should never be done on client side, but occasionally it is. See if you can log in to this app.
+</p>
+
+<p>
+	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landclientsideauth">walkthrough</a>.
+</p>
+
+<h2>JS Login</h2>
+
+{{ if .logged_in }}
+	<p>
+		<strong>Welcome Sid, you are now logged in.</strong>
+	</p>
+{{ else }}
+	<form>
+		<label for="username">Username</label> <input type="text" id="username" name="username" value="" autofocus /><br />
+		<label for="password">Password</label> <input type="password" id="password" name="password" value="" /><br />
+		<input type="button" id="login" value="Login" />
+	</form>
+	<script src="/public/js/clientside.js"></script>
+{{ end }}
+
+<p>
+	<a href="/">Back to home</a>
+</p>
+
+{{template "footer.html" .}}
+

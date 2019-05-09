@@ -1,0 +1,37 @@
+{{set . "title" "Auth Bypass"}}
+{{template "header.html" .}}
+
+<h1>IP Based Auth Bypass</h1>
+
+<p>
+	Alex is a lazy developer who can't be bothered logging in every time he wants to use the site. To get around this, he has set up this page to automatically log him in if he visits it from his own workstation.
+</p>
+
+<p>
+	The network has a DHCP range of 192.168.0.100-200 but Alex has given himself a static IP. 
+</p>
+
+<p>
+	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landipauthbypass">walkthrough</a>.
+</p>
+
+<h2>Bypass It</h2>
+
+{{ if .logged_in }}
+	<p>
+		Welcome Alex, you are now logged in.
+	</p>
+{{ else }}
+	<p>
+		Invalid IP, bypass not allowed.
+	</p>
+	<p>
+		Your IP is: {{.forwarded}}
+	</p>
+{{ end }}
+
+<p>
+	<a href="/">Back to home</a>
+</p>
+
+{{template "footer.html" .}}
