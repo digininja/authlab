@@ -31,6 +31,10 @@ GET		/ClientSide								App.ClientSide
 GET		/Auth1									App.Auth1
 POST	/Auth1_Login							App.Auth1_Login
 
+# User Agent Bypass
+GET		/UserAgent								App.UserAgent
+POST	/UserAgent_Login						App.UserAgent_Login
+
 # Ignore favicon requests
 GET     /favicon.ico                            404
 

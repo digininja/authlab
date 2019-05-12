@@ -149,10 +149,9 @@ func (c App) Auth1() revel.Result {
 
 	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsZXZlbCI6InVzZXIiLCJ1c2VyIjoic2lkIn0.Hnpn5k6NtrXn8qvOuiSsFjXhAolQGn3TfmGBvA7EGTU"
 
-	robin := "Robin"
 	//var username string = c.Params.Form["username"][0]
 	username := ""
-	return c.Render(tokenString, username, robin)
+	return c.Render(tokenString, username)
 }
 
 func (c App) Bypass() revel.Result {
@@ -197,10 +196,9 @@ func (c App) Expired_JWT() revel.Result {
 
 	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsZXZlbCI6ImFkbWluIiwicGFzc3dvcmQiOiIyYWM5Y2I3ZGMwMmIzYzAwODNlYjcwODk4ZTU0OWI2MyIsInVzZXJuYW1lIjoiam9lIn0.6j3NrK-0C7K8gmaWeB9CCyZuQKfvVEAl4KhitRN2p5k"
 
-	robin := "Robin"
 	//var username string = c.Params.Form["username"][0]
 	username := ""
-	return c.Render(tokenString, username, robin)
+	return c.Render(tokenString, username)
 }
 
 /******************
@@ -235,8 +233,32 @@ func (c App) Leaky_JWT() revel.Result {
 
 	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsZXZlbCI6ImFkbWluIiwicGFzc3dvcmQiOiIyYWM5Y2I3ZGMwMmIzYzAwODNlYjcwODk4ZTU0OWI2MyIsInVzZXJuYW1lIjoiam9lIn0.6j3NrK-0C7K8gmaWeB9CCyZuQKfvVEAl4KhitRN2p5k"
 
-	robin := "Robin"
 	//var username string = c.Params.Form["username"][0]
 	username := ""
-	return c.Render(tokenString, username, robin)
+	return c.Render(tokenString, username)
+}
+
+/******************
+
+User Agent Bypass
+
+******************/
+
+func (c App) UserAgent_Login() revel.Result {
+	ua := c.Request.Header.Get("User-Agent")
+
+	message := "abc"
+	if ua == "authlab desktop app" {
+		c.Flash.Success(message)
+	} else {
+		c.Flash.Error(message)
+	}
+
+	c.FlashParams()
+
+	return c.Redirect(App.UserAgent)
+}
+
+func (c App) UserAgent() revel.Result {
+	return c.Render()
 }
