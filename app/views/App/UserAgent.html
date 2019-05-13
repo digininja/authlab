@@ -4,37 +4,31 @@
 <h1>User Agents</h1>
 
 <p>
-	Signed JWTs may look like secret data but are easy to decode. When the developer put this together, they just pulled the whole user object out of the database and put it into the token rather than only including the information required.
+	This challenge is similar to the <a href="/ClientSide">Client Side</a> challenge where the server assumes that the client can be trusted and bases its authentication decisions on what the client tells it.
 </p>
 
 <p>
-	You have acquired the following token from the local storage of your victim, decode it and use the information to login below.
+	The developers have created a desktop and a web app to access the database. The desktop app makes use of the same API as the web app but rather than using sessions, makes use of the user agent string to identify itself as a valid application and gain access to the data. Download the following ping script used by the application, and from analysing it, access this page and view the secret information below.
 </p>
 <p>
-	<textarea class="jwt_textarea" id="leaky_jwt_textbox">{{.tokenString}}</textarea>
-</p>
-<p>
-	If you need help decoding the token, this is a good resource: <a href="https://jwt.io">JWT.IO</a>.
+	<a href="/public/scripts/useragentping.sh.gz">Download the User Agent Ping script</a>.
 </p>
 
-<p>
-	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landleakyjwt">walkthrough</a>.
-</p>
+<h2>Not So Secret Agent</h2>
 
-<h2>Check The App</h2>
-
-{{ if .flash.success }}
-	<p><strong>Login success, welcome Joe</strong></p>
-		{{.flash.success}}
+{{ if .app }}
+	<p>You are accessing from the desktop app so you must be trusted. The secret phrase is "Badger loves mashed potatoes".</p>
 {{ else }}
-	<p class="error">
-		{{.flash.error}}
-	</p>
+	<p>User not connecting from the desktop app so must log in here.</p>
 
-	<form method="post" action="/UserAgent_Login">
+	<form method="post" action="/UserAgent">
+		<label for="username">Username</label> <input type="text" id="username" name="username" value="" autofocus /><br />
+		<label for="password">Password</label> <input type="password" id="password" name="password" value="" /><br />
 		<input type="submit" value="Login" />
 	</form>
 {{ end}}
+
+{{ raw .comment }}
 
 <p>
 	<a href="/">Back to home</a>

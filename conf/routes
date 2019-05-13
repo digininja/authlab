@@ -33,7 +33,8 @@ POST	/Auth1_Login							App.Auth1_Login
 
 # User Agent Bypass
 GET		/UserAgent								App.UserAgent
-POST	/UserAgent_Login						App.UserAgent_Login
+POST	/UserAgent								App.UserAgent
+GET		/UserAgentPing							App.UserAgent_Ping
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

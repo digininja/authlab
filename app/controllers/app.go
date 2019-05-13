@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/revel/revel"
+	"html"
 	"strings"
 	"time"
 )
@@ -244,21 +245,25 @@ User Agent Bypass
 
 ******************/
 
-func (c App) UserAgent_Login() revel.Result {
+func (c App) UserAgent() revel.Result {
 	ua := c.Request.Header.Get("User-Agent")
 
-	message := "abc"
+	app := ""
+	comment := fmt.Sprintf("<!-- For debug, the user agent supplied is: %s -->", html.EscapeString(ua))
 	if ua == "authlab desktop app" {
-		c.Flash.Success(message)
-	} else {
-		c.Flash.Error(message)
+		app = "desktop"
 	}
 
-	c.FlashParams()
-
-	return c.Redirect(App.UserAgent)
+	return c.Render(app, comment)
 }
 
-func (c App) UserAgent() revel.Result {
-	return c.Render()
+func (c App) UserAgent_Ping() revel.Result {
+	ua := c.Request.Header.Get("User-Agent")
+
+	app := ""
+	if ua == "authlab desktop app" {
+		app = "desktop"
+	}
+
+	return c.Render(app)
 }
