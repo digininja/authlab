@@ -13,12 +13,12 @@ First you will need Go setup on your machine, I'll leave that up to you to work 
 Once you have a working version, you can get the lab by running:
 
 ```
-mkdir -p ~/go/src/github/digininja/
-cd ~/go/src/github/digininja/
-git clone https://github.com/digininja/authlab
+go get github.com/digininja/authlab
 ```
 
-This will download the project into your go source directory. Change into that directory and run:
+You might get a warning about the lack of Go files, don't worry about this, it is not a problem.
+
+This will download the project into your go source directory, probably <code>~/go/src/github.com/digininja/authlab</code>. Change into that directory and run:
 
 ```
 go get -d ./...
