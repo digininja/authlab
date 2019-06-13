@@ -1,0 +1,37 @@
+{{set . "title" "User Agents"}}
+{{template "header.html" .}}
+
+<h1>User Agents</h1>
+
+<p>
+	This challenge is similar to the <a href="/ClientSide">Client Side</a> challenge where the server assumes that the client can be trusted and bases its authentication decisions on what the client tells it.
+</p>
+
+<p>
+	The developers have created a desktop and a web app to access the company database. The desktop app makes use of the same API as the web app but rather than using sessions, uses of the user agent string to identify itself as a valid application and gain access to the data. Download the following ping script used by the application, and from analysing it, access this page and view the secret information below.
+</p>
+<p>
+	<a href="/public/scripts/useragentping.sh.gz">Download the User Agent Ping script</a>.
+</p>
+
+<h2>Not So Secret Agent</h2>
+
+{{ if .app }}
+	<p>You are accessing from the desktop app so you must be trusted. The secret phrase is "Badger loves mashed potatoes".</p>
+{{ else }}
+	<p>User not connecting from the desktop app so must log in here.</p>
+
+	<form method="post" action="/UserAgent">
+		<label for="username">Username</label> <input type="text" id="username" name="username" value="" autofocus /><br />
+		<label for="password">Password</label> <input type="password" id="password" name="password" value="" /><br />
+		<input type="submit" value="Login" />
+	</form>
+{{ end}}
+
+{{ raw .comment }}
+
+<p>
+	<a href="/">Back to home</a>
+</p>
+
+{{template "footer.html" .}}
