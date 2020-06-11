@@ -36,6 +36,10 @@ GET		/UserAgent								App.UserAgent
 POST	/UserAgent								App.UserAgent
 GET		/UserAgentPing							App.UserAgent_Ping
 
+# JWT None
+GET		/JWT_None								App.JWT_None
+GET		/JWT_None_Check							App.JWT_None_Check
+
 # Ignore favicon requests
 GET     /favicon.ico                            404
 

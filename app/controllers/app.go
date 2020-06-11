@@ -267,3 +267,37 @@ func (c App) UserAgent_Ping() revel.Result {
 
 	return c.Render(app)
 }
+
+/******************
+
+JWT None
+
+******************/
+
+func ParseJWTNone(tokenString string) (bool, string) {
+	return true, "Blah"
+}
+
+func (c App) JWT_None_Check() revel.Result {
+	jwt := "aaa"
+	success, message := ParseJWTNone(jwt)
+
+	bearer_header := c.Request.GetHttpHeader("Authorization")
+	fmt.Printf("headers %s\n", bearer_header)
+	user := "robin"
+	data := make(map[string]interface{})
+	if success {
+		fmt.Printf("Login success\n")
+		data["error"] = false
+		data["stuff"] = fmt.Sprintf("Logged in as %s", user)
+	} else {
+		fmt.Printf("Login failed\n")
+		data["error"] = true
+		data["stuff"] = message
+	}
+	return c.RenderJSON(data)
+}
+
+func (c App) JWT_None() revel.Result {
+	return c.Render()
+}
