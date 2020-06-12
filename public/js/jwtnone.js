@@ -25,7 +25,13 @@ function jwt_none_request () {
 		throw new Error('CORS not supported');
 	}
 
-	xhr.setRequestHeader ("Authorization", "Bearer: aaa");
+	// With
+	// let token = "eyJhbGciOiJSUzI1NiIsInR5cCI6ImF0K0pXVCIsImtpZCI6IjIwMTkwNzMwLTU0ZmY5NTZlIn0.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmZpcmVmb3guY29tIiwiYXVkIjoiNTg4MjM4NmM2ZDgwMTc3NiIsImNsaWVudF9pZCI6IjU4ODIzODZjNmQ4MDE3NzYiLCJleHAiOjE1OTIxNjc5MDQsImlhdCI6MTU5MTk5NTEwNCwianRpIjoiMTY5OWVhM2ZiNjQ0NjBiMTRjM2I3NDg1NjdhMDQ5NjAxZjg4ZjQxOGJhMDVkZDIyMDdkMjk3YjUwNzBmM2Y4NiIsInNjb3BlIjoic3luYzphZGRvbl9zdG9yYWdlIiwic3ViIjoiOTY5NmQ2NDlmMWViNDA4ZDk2ODc2YmVhZGVmNGJkMmEiLCJmeGEtZ2VuZXJhdGlvbiI6MTQ5NzQzMDA1NDQ4MywiZnhhLXByb2ZpbGVDaGFuZ2VkQXQiOjE0OTc0MzAwNTQ0ODN9.ThTSZFka4yQjCEqktN12rkfBgOp5WLcQqs5IqudmOWsCZA4Qn4SLBCLxQGapzfiiZ5P2gKebZWzSqY6-QIfojadKWC6XEDQruDIg5yH5cJSjXJi3fDh4e8BSg_X867eHf9-mAtblgdJfCeTZ58q6LjUU2i1p71kzUkosYRtF-u-9BeLHlfGvgE5PzfsriOrRU2V6bLSy1XE06FPfICGaTMur-x0OF8SG0zzRUzIcD0KT6VdjmLgN2_iSdIS26k6PFzKvk01iLPBHAmIE_-2YjvwhHSRefCtjOC4wihra9nhj22O9P6ifQpo7k4HfMdOMrDyrMLVlVHyOFaKkEymuGQ"
+
+	// JWT with none
+	let token = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJsZXZlbCI6InVzZXIiLCJ1c2VyIjoic2lkIn0."
+
+	xhr.setRequestHeader ("Authorization", "Bearer " + token);
 
 	xhr.onload = function() {
 		var responseText = xhr.responseText;

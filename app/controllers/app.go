@@ -5,6 +5,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/revel/revel"
 	"html"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -275,17 +276,69 @@ JWT None
 ******************/
 
 func ParseJWTNone(tokenString string) (bool, string) {
-	return true, "Blah"
+	var success bool = false
+	var message string = ""
+
+	token, err := jwt.Parse(tokenString, getToken)
+
+	// fmt.Printf("TokenString is: %s\n", tokenString)
+	fmt.Printf("Token is: %u\n", token)
+	// Check if algorithm is none, if so, return the data, if anything else, then parse as it should be
+
+	return true, "aaa"
+
+	if err == nil {
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			message = fmt.Sprintf("Welcome %s (%s)", claims["user"], claims["level"])
+			success = true
+		}
+	} else if ve, ok := err.(*jwt.ValidationError); ok {
+		// This is from <https://godoc.org/github.com/dgrijalva/jwt-go#pkg-constants>
+		if ve.Errors&jwt.ValidationErrorSignatureInvalid != 0 {
+			newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, token.Claims)
+			newTokenString, _ := newToken.SignedString(hmacSampleSecret)
+
+			newParsedToken, _ := jwt.Parse(newTokenString, getToken)
+
+			message = fmt.Sprintf("Invalid signature. Expected %s got %s", newParsedToken.Signature, token.Signature)
+			//message = fmt.Sprintf("err: %s", err)
+		} else if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+			message = fmt.Sprintln("That's not even a token")
+		} else {
+			fmt.Sprintln("Couldn't handle this token:", err)
+		}
+	} else {
+		message = fmt.Sprintf("There was an error parsing the token: %s", err.Error())
+	}
+
+	return success, message
 }
 
 func (c App) JWT_None_Check() revel.Result {
-	jwt := "aaa"
-	success, message := ParseJWTNone(jwt)
+	data := make(map[string]interface{})
 
 	bearer_header := c.Request.GetHttpHeader("Authorization")
-	fmt.Printf("headers %s\n", bearer_header)
+	// fmt.Printf("headers %s\n", bearer_header)
+
+	re := regexp.MustCompile("(?i)^bearer (.*)$")
+	//re := regexp.MustCompile("(?i)bearer ([.0-9a-z=])$")
+	matches := re.FindStringSubmatch(bearer_header)
+	// fmt.Printf("Length of tokens: %d\n", len(matches))
+
+	jwt := ""
+	if len(matches) == 2 {
+		fmt.Printf("Hit for token: %s\n", matches[1])
+		jwt = matches[1]
+	} else {
+		fmt.Printf("Login failed\n")
+		data["error"] = true
+		data["stuff"] = "No token found"
+		return c.RenderJSON(data)
+	}
+
+	success, message := ParseJWTNone(jwt)
+
 	user := "robin"
-	data := make(map[string]interface{})
 	if success {
 		fmt.Printf("Login success\n")
 		data["error"] = false
