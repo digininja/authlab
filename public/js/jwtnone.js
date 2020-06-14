@@ -1,4 +1,4 @@
-function jwt_none_request () {
+function validate_token () {
 	var url = "/JWT_None_Check"
 
 	let xhr = new XMLHttpRequest();
@@ -14,8 +14,29 @@ function jwt_none_request () {
 	xhr.setRequestHeader ("Authorization", "Bearer " + token);
 
 	xhr.onload = function() {
-		var responseText = xhr.responseText;
-		console.log ("Server says: " + responseText);
+		if (xhr.readyState == 4 && xhr.status == 200) {
+			console.log ("Server says: " + xhr.responseText);
+
+			let jsonObj = JSON.parse(xhr.responseText);
+			if (jsonObj.Success) {
+				document.getElementById("header").style.color = "green";
+				document.getElementById("header").innerText = "Login Success";
+				document.getElementById("user").innerText = "User: " + jsonObj.User;
+				document.getElementById("level").innerText = "Level: " + jsonObj.Level;
+				document.getElementById("user").style.display = "block";
+				document.getElementById("level").style.display = "block";
+				document.getElementById("error").style.display = "none";
+			} else {
+				document.getElementById("header").style.color = "red";
+				document.getElementById("header").innerText = "Login Failed";
+				document.getElementById("error").innerText = "Error: " + jsonObj.Message;
+				document.getElementById("user").style.display = "none";
+				document.getElementById("level").style.display = "none";
+				document.getElementById("error").style.display = "block";
+			}
+		} else {
+			console.log ("There was a problem with the reply from the server");
+		}
 	};
 
 	xhr.onerror = function() {
@@ -24,3 +45,6 @@ function jwt_none_request () {
 
 	xhr.send()
 }
+
+var button = document.getElementById ("validate_token");
+button.addEventListener("click", validate_token);

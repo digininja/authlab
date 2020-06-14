@@ -4,38 +4,36 @@
 <h1>JWT None Algorithm</h1>
 
 <p>
-	Signed JWTs may look like secret data but are easy to decode. When the developer put this together, they just pulled the whole user object out of the database and put it into the token rather than only including the information required.
+	As well as allowing HMAC and RSA hashing algorithms for the JWT signature, some parsers also allow hashing to be disabled by specifying "none".
 </p>
 
 <p>
-	You have acquired the following token from the local storage of your victim, decode it and use the information to login below.
+	This is rarely seen in the wild as most libraries do not implement it, but it occasionally pops up, sometimes in the worst of places!
 </p>
 <p>
-	<textarea class="jwt_textarea" id="leaky_jwt_textbox">{{.tokenString}}</textarea>
+	In April 2020, researchers found that Auth0 was vulnerable to this attack and wrote it up in the blog post:<br />
+	<a href="https://insomniasec.com/blog/auth0-jwt-validation-bypass">JSON Web Token Validation Bypass in Auth0 Authentication API</a>
 </p>
 <p>
-	If you need help decoding the token, this is a good resource: <a href="https://jwt.io">JWT.IO</a>.
-</p>
-
-<p>
-	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landleakyjwt">walkthrough</a>.
+	This lab simulates that vulnerability and can be easily exploited using the JOSEPH Burp extension as mentioned in the blog post.
 </p>
 
 <p>
-https://insomniasec.com/blog/auth0-jwt-validation-bypass
+	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#jwtnone">walkthrough</a>.
 </p>
 
-<h2>Leaky Login</h2>
+<p>
+</p>
+
+<h2>JWT None</h2>
 
 
-<input type="button" onclick="jwt_none_request()" value="Send Request"  />
+<input type="button" id="validate_token" value="Validate Token"  />
 
-{{ if .success }}
-	<p>Success</p>
-	<p><strong>Login success, welcome Joe</strong></p>
-{{ else }}
-	<p>aaaaaaaaaaabbbaaaa</p>
-{{ end}}
+<p id="header"></p>
+<p id="user"></p>
+<p id="level"></p>
+<p id="error"></p>
 
 <p>
 	<a href="/">Back to home</a>
