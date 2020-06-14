@@ -278,38 +278,55 @@ JWT None
 func ParseJWTNone(tokenString string) (bool, string) {
 	var success bool = false
 	var message string = ""
+	var algorithm string = ""
 
 	token, err := jwt.Parse(tokenString, getToken)
+	// Token is one of these
+	// https://godoc.org/github.com/dgrijalva/jwt-go#Token
+
+	if err != nil {
+		fmt.Printf("Error parsing token\n")
+		return false, "Error parsing token"
+	}
 
 	// fmt.Printf("TokenString is: %s\n", tokenString)
-	fmt.Printf("Token is: %u\n", token)
+	// fmt.Printf("Token is: %u\n", token)
+
+	if token.Method != nil {
+		fmt.Printf("Algorithm is: %s\n", token.Method.Alg())
+		algorithm = token.Method.Alg()
+	} else {
+		fmt.Printf("Unknown algorithm passed\n")
+		return false, "Unknown hashing algorithm"
+	}
 	// Check if algorithm is none, if so, return the data, if anything else, then parse as it should be
 
 	return true, "aaa"
 
-	if err == nil {
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			message = fmt.Sprintf("Welcome %s (%s)", claims["user"], claims["level"])
-			success = true
-		}
-	} else if ve, ok := err.(*jwt.ValidationError); ok {
-		// This is from <https://godoc.org/github.com/dgrijalva/jwt-go#pkg-constants>
-		if ve.Errors&jwt.ValidationErrorSignatureInvalid != 0 {
-			newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, token.Claims)
-			newTokenString, _ := newToken.SignedString(hmacSampleSecret)
-
-			newParsedToken, _ := jwt.Parse(newTokenString, getToken)
-
-			message = fmt.Sprintf("Invalid signature. Expected %s got %s", newParsedToken.Signature, token.Signature)
-			//message = fmt.Sprintf("err: %s", err)
-		} else if ve.Errors&jwt.ValidationErrorMalformed != 0 {
-			message = fmt.Sprintln("That's not even a token")
-		} else {
-			fmt.Sprintln("Couldn't handle this token:", err)
-		}
-	} else {
-		message = fmt.Sprintf("There was an error parsing the token: %s", err.Error())
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		message = fmt.Sprintf("Welcome %s (%s)", claims["user"], claims["level"])
+		success = true
 	}
+	/*
+		} else if ve, ok := err.(*jwt.ValidationError); ok {
+			// This is from <https://godoc.org/github.com/dgrijalva/jwt-go#pkg-constants>
+			if ve.Errors&jwt.ValidationErrorSignatureInvalid != 0 {
+				newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, token.Claims)
+				newTokenString, _ := newToken.SignedString(hmacSampleSecret)
+
+				newParsedToken, _ := jwt.Parse(newTokenString, getToken)
+
+				message = fmt.Sprintf("Invalid signature. Expected %s got %s", newParsedToken.Signature, token.Signature)
+				//message = fmt.Sprintf("err: %s", err)
+			} else if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+				message = fmt.Sprintln("That's not even a token")
+			} else {
+				fmt.Sprintln("Couldn't handle this token:", err)
+			}
+		} else {
+			message = fmt.Sprintf("There was an error parsing the token: %s", err.Error())
+		}
+	*/
 
 	return success, message
 }
