@@ -273,62 +273,172 @@ func (c App) UserAgent_Ping() revel.Result {
 
 JWT None
 
+https://insomniasec.com/blog/auth0-jwt-validation-bypass
+
 ******************/
 
-func ParseJWTNone(tokenString string) (bool, string) {
-	var success bool = false
-	var message string = ""
-	var algorithm string = ""
+func getTokenNone(token *jwt.Token) (interface{}, error) {
+	// Don't forget to validate the alg is what you expect:
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+	}
 
-	token, err := jwt.Parse(tokenString, getToken)
+	// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
+	hmacSampleSecret = []byte("No more secrets")
+	return hmacSampleSecret, nil
+}
+
+/*
+There is probably a better way to do this, but this lets me register
+all the different variations of the None signing method so that I can
+register them with the class so that the parser will accept them.
+/*
+
+type SigningMethod interface {
+	Verify(signingString, signature string, key interface{}) error // Returns nil if signature is valid
+	Sign(signingString string, key interface{}) (string, error)    // Returns encoded signature or error
+	Alg() string                                                   // returns the alg identifier for this method (example: 'HS256')
+}
+*/
+
+type SigningMethodNone struct {
+}
+
+func (j SigningMethodNone) Verify(signingString, signature string, key interface{}) error {
+	return nil
+}
+func (j SigningMethodNone) Sign(signingString string, key interface{}) (string, error) {
+	return "", nil
+}
+func (j SigningMethodNone) Alg() string {
+	return "None"
+}
+
+func getSigningMethodNone() jwt.SigningMethod {
+	var x SigningMethodNone
+	return x
+}
+
+func extractClaims(token *jwt.Token) (jwt.MapClaims, bool) {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		return claims, true
+	} else {
+		fmt.Println("Invalid JWT Token")
+		return nil, false
+	}
+}
+
+// Would be good to get this into the extraClaims function
+// so I can just reference the fields rather than having to
+// check they exist.
+
+type MyClaimsType struct {
+	*jwt.StandardClaims
+	User  string `json:"user"`
+	Level string `json:"level"`
+}
+
+type jwtNoneResponse struct {
+	Success bool
+	User    string
+	Level   string
+	Message string
+}
+
+func ParseJWTNone(tokenString string) (bool, jwtNoneResponse) {
+	var success bool = false
+	var algorithm string = ""
+	var response jwtNoneResponse
+
+	//jwt.RegisterSigningMethod("none", getSigningMethodNone)
+	jwt.RegisterSigningMethod("noNe", getSigningMethodNone)
+	jwt.RegisterSigningMethod("NoNe", getSigningMethodNone)
+	jwt.RegisterSigningMethod("None", getSigningMethodNone)
+	jwt.RegisterSigningMethod("noNe", getSigningMethodNone)
+	jwt.RegisterSigningMethod("NONE", getSigningMethodNone)
+
 	// Token is one of these
 	// https://godoc.org/github.com/dgrijalva/jwt-go#Token
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
 
 	if err != nil {
-		fmt.Printf("Error parsing token\n")
-		return false, "Error parsing token"
+		// fmt.Printf("Error parsing token\n")
+		response.Message = fmt.Sprintf("Error parsing token: %s", err)
+		response.Success = false
+		return false, response
 	}
 
 	// fmt.Printf("TokenString is: %s\n", tokenString)
 	// fmt.Printf("Token is: %u\n", token)
+	// fmt.Printf("Raw Token is: %s\n", token.Raw)
 
-	if token.Method != nil {
-		fmt.Printf("Algorithm is: %s\n", token.Method.Alg())
-		algorithm = token.Method.Alg()
-	} else {
-		fmt.Printf("Unknown algorithm passed\n")
-		return false, "Unknown hashing algorithm"
+	if token.Method == nil {
+		//fmt.Printf("No hashing method passed\n")
+		response.Message = "No hashing method passed"
+		response.Success = false
+		return false, response
 	}
-	// Check if algorithm is none, if so, return the data, if anything else, then parse as it should be
 
-	return true, "aaa"
+	// fmt.Printf("Hashing algorithm is: %s\n", token.Method.Alg())
+	algorithm = token.Method.Alg()
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		message = fmt.Sprintf("Welcome %s (%s)", claims["user"], claims["level"])
-		success = true
-	}
-	/*
-		} else if ve, ok := err.(*jwt.ValidationError); ok {
-			// This is from <https://godoc.org/github.com/dgrijalva/jwt-go#pkg-constants>
-			if ve.Errors&jwt.ValidationErrorSignatureInvalid != 0 {
-				newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, token.Claims)
-				newTokenString, _ := newToken.SignedString(hmacSampleSecret)
+	// Check if algorithm is none, but not exactly none, if so, return the data, if anything else, then parse as it should be
 
-				newParsedToken, _ := jwt.Parse(newTokenString, getToken)
-
-				message = fmt.Sprintf("Invalid signature. Expected %s got %s", newParsedToken.Signature, token.Signature)
-				//message = fmt.Sprintf("err: %s", err)
-			} else if ve.Errors&jwt.ValidationErrorMalformed != 0 {
-				message = fmt.Sprintln("That's not even a token")
-			} else {
-				fmt.Sprintln("Couldn't handle this token:", err)
-			}
-		} else {
-			message = fmt.Sprintf("There was an error parsing the token: %s", err.Error())
+	if strings.EqualFold(algorithm, "none") {
+		// fmt.Println("case insensitive match of none")
+		if algorithm == "none" {
+			//fmt.Println("it is none")
+			response.Message = "'none' signature type is not allowed"
+			response.Success = false
+			return false, response
 		}
+	} else if !token.Valid {
+		token, err = jwt.Parse(tokenString, getTokenNone)
+		if !token.Valid {
+			response.Message = "Invalid signature"
+			response.Success = false
+			return false, response
+		}
+	}
+
+	claims, success := extractClaims(token)
+
+	if !success {
+		// fmt.Printf("Error parsing claims\n")
+		response.Message = "Error parsing claims"
+		response.Success = false
+		return false, response
+	}
+
+	var user string
+	var level string
+
+	if val, ok := claims["user"]; ok {
+		user = val.(string)
+	} else {
+		response.Message = "User not provided"
+		response.Success = false
+		return false, response
+	}
+
+	if val, ok := claims["level"]; ok {
+		level = val.(string)
+	} else {
+		response.Message = "Level not provided"
+		response.Success = false
+		return false, response
+	}
+
+	/*
+		fmt.Printf("user: %s\n", user)
+		fmt.Printf("level: %s\n", level)
 	*/
 
-	return success, message
+	response.Message = fmt.Sprintf("Logged in as %s with user level %s", user, level)
+	response.User = user
+	response.Level = level
+	response.Success = true
+	return true, response
 }
 
 func (c App) JWT_None_Check() revel.Result {
@@ -344,28 +454,18 @@ func (c App) JWT_None_Check() revel.Result {
 
 	jwt := ""
 	if len(matches) == 2 {
-		fmt.Printf("Hit for token: %s\n", matches[1])
+		//fmt.Printf("Hit for token: %s\n", matches[1])
 		jwt = matches[1]
 	} else {
-		fmt.Printf("Login failed\n")
+		// fmt.Printf("Login failed\n")
 		data["error"] = true
 		data["stuff"] = "No token found"
 		return c.RenderJSON(data)
 	}
 
-	success, message := ParseJWTNone(jwt)
+	_, response := ParseJWTNone(jwt)
 
-	user := "robin"
-	if success {
-		fmt.Printf("Login success\n")
-		data["error"] = false
-		data["stuff"] = fmt.Sprintf("Logged in as %s", user)
-	} else {
-		fmt.Printf("Login failed\n")
-		data["error"] = true
-		data["stuff"] = message
-	}
-	return c.RenderJSON(data)
+	return c.RenderJSON(response)
 }
 
 func (c App) JWT_None() revel.Result {
