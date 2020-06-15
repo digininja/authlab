@@ -43,3 +43,59 @@ You can start the lab with the following command:
 ```
 
 Then browse to <http://localhost:9000>
+
+## Logrotate
+
+Set this up to do log rotation on prod otherwise the files will get huge:
+
+```
+/xxxx/go/src/github.com/digininja/authlab/log/*.json {
+	daily
+	rotate 7
+	missingok
+	compress
+	delaycompress
+	missingok
+	postrotate
+		service authlab restart
+	endscript
+}
+```
+
+Can test with:
+
+```
+logrotate -d /etc/logrotate.d/authlab
+```
+
+And force with:
+
+```
+logrotate --force /etc/logrotate.d/authlab 
+```
+
+## Service scripts
+
+This controls the app through `systemctl`, put the file in `/etc/systemd/system/authlab.service`.
+
+```
+[Unit]
+Description=Authlab Service
+After=network.target
+
+[Service]
+Type=simple
+User=authlab
+Environment=PATH=/opt/go/bin:/xxxx/go/bin/:/opt/go/bin:/usr/local/bin:/usr/bin:/bin
+Environment=GOPATH=/xxxx/go/
+Environment=GOROOT=/opt/go/
+WorkingDirectory=/xxxx/go/src/github.com/digininja/authlab
+ExecStart=/xxxx/go/bin/revel run --application-path=github.com/digininja/authlab --run-mode=prod
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+```
+
+When changing it, make sure you run `systemctl daemon-reload`.
