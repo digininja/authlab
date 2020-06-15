@@ -44,6 +44,12 @@ You can start the lab with the following command:
 
 Then browse to <http://localhost:9000>
 
+To start in production mode:
+
+```
+~/go/bin/revel run -a github.com/digininja/authlab/ -m prod
+```
+
 ## Logrotate
 
 Set this up to do log rotation on prod otherwise the files will get huge:
