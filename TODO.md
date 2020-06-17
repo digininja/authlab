@@ -7,3 +7,9 @@
 ## JWT expiry
 
 Have an app not checking the expiry or valid after times.
+
+## Cracking JWTs with Hashcat
+
+Check hash mode 16500
+
+<https://hashcat.net/wiki/doku.php?id=example_hashes>
