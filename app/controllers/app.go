@@ -338,17 +338,17 @@ type MyClaimsType struct {
 	Level string `json:"level"`
 }
 
-type jwtNoneResponse struct {
+type jwtJSONResponse struct {
 	Success bool
 	User    string
 	Level   string
 	Message string
 }
 
-func ParseJWTNone(tokenString string) (bool, jwtNoneResponse) {
+func ParseJWTNone(tokenString string) (bool, jwtJSONResponse) {
 	var success bool = false
 	var algorithm string = ""
-	var response jwtNoneResponse
+	var response jwtJSONResponse
 
 	//jwt.RegisterSigningMethod("none", getSigningMethodNone)
 	jwt.RegisterSigningMethod("noNe", getSigningMethodNone)
@@ -447,10 +447,9 @@ func (c App) JWT_None_Check() revel.Result {
 	bearer_header := c.Request.GetHttpHeader("Authorization")
 	// fmt.Printf("headers %s\n", bearer_header)
 
+	// Split the token from the bearer
 	re := regexp.MustCompile("(?i)^bearer (.*)$")
-	//re := regexp.MustCompile("(?i)bearer ([.0-9a-z=])$")
 	matches := re.FindStringSubmatch(bearer_header)
-	// fmt.Printf("Length of tokens: %d\n", len(matches))
 
 	jwt := ""
 	if len(matches) == 2 {
@@ -458,8 +457,8 @@ func (c App) JWT_None_Check() revel.Result {
 		jwt = matches[1]
 	} else {
 		// fmt.Printf("Login failed\n")
-		data["error"] = true
-		data["stuff"] = "No token found"
+		data["Error"] = true
+		data["Message"] = "No token found"
 		return c.RenderJSON(data)
 	}
 
@@ -470,4 +469,140 @@ func (c App) JWT_None_Check() revel.Result {
 
 func (c App) JWT_None() revel.Result {
 	return c.Render()
+}
+
+/******************
+
+JWT Key Cracking
+
+https://laconicwolf.com/2018/09/29/hashcat-tutorial-the-basics-of-cracking-passwords-with-hashcat/
+
+******************/
+
+func (c App) JWT_Cracking() revel.Result {
+	return c.Render()
+}
+
+func getCrackingKey() []byte {
+	return []byte("hello")
+}
+
+func (c App) JWT_Cracking_Get() revel.Result {
+	iat := time.Now().Unix()
+
+	claims := jwt.MapClaims{
+		"user":  "jasper",
+		"level": "user",
+		"iat":   iat,
+	}
+	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	newTokenString, err := newToken.SignedString(getCrackingKey())
+
+	data := make(map[string]interface{})
+
+	if err != nil {
+		fmt.Printf("Error generating token: %s\n", err)
+		data["Error"] = true
+		data["Message"] = err
+		data["Token"] = nil
+	}
+
+	data["Error"] = false
+	data["Message"] = nil
+	data["Token"] = newTokenString
+	return c.RenderJSON(data)
+}
+
+func (c App) JWT_Cracking_Check() revel.Result {
+	data := make(map[string]interface{})
+
+	bearer_header := c.Request.GetHttpHeader("Authorization")
+	// fmt.Printf("headers %s\n", bearer_header)
+
+	// Split the token from the bearer
+	re := regexp.MustCompile("(?i)^bearer (.*)$")
+	matches := re.FindStringSubmatch(bearer_header)
+
+	jwt := ""
+	if len(matches) == 2 {
+		//fmt.Printf("Hit for token: %s\n", matches[1])
+		jwt = matches[1]
+	} else {
+		// fmt.Printf("Login failed\n")
+		data["Error"] = true
+		data["Message"] = "No token found"
+		return c.RenderJSON(data)
+	}
+
+	_, response := ParseJWTCrack(jwt)
+
+	return c.RenderJSON(response)
+}
+
+func getTokenCracking(token *jwt.Token) (interface{}, error) {
+	// Don't forget to validate the alg is what you expect:
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+	}
+
+	return getCrackingKey(), nil
+}
+
+func ParseJWTCrack(tokenString string) (bool, jwtJSONResponse) {
+	var success bool = false
+	var response jwtJSONResponse
+
+	token, err := jwt.Parse(tokenString, getTokenCracking)
+
+	if err != nil {
+		response.Message = fmt.Sprintf("Error: %s", err)
+		response.Success = false
+		return false, response
+	}
+
+	if !token.Valid {
+		response.Message = "Invalid signature"
+		response.Success = false
+		return false, response
+	}
+
+	claims, success := extractClaims(token)
+
+	if !success {
+		// fmt.Printf("Error parsing claims\n")
+		response.Message = "Error parsing claims"
+		response.Success = false
+		return false, response
+	}
+
+	var user string
+	var level string
+
+	if val, ok := claims["user"]; ok {
+		user = val.(string)
+	} else {
+		response.Message = "User not provided"
+		response.Success = false
+		return false, response
+	}
+
+	if val, ok := claims["level"]; ok {
+		level = val.(string)
+	} else {
+		response.Message = "Level not provided"
+		response.Success = false
+		return false, response
+	}
+
+	/*
+		fmt.Printf("user: %s\n", user)
+		fmt.Printf("level: %s\n", level)
+	*/
+
+	response.Message = fmt.Sprintf("Logged in as %s with user level %s", user, level)
+	response.User = user
+	response.Level = level
+	response.Success = true
+	return true, response
 }

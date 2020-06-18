@@ -40,6 +40,11 @@ GET		/UserAgentPing							App.UserAgent_Ping
 GET		/JWT_None								App.JWT_None
 GET		/JWT_None_Check							App.JWT_None_Check
 
+# JWT Key Cracking
+GET		/JWT_Cracking							App.JWT_Cracking
+GET		/JWT_Cracking_Get						App.JWT_Cracking_Get
+GET		/JWT_Cracking_Check						App.JWT_Cracking_Check
+
 # Ignore favicon requests
 GET     /favicon.ico                            404
 

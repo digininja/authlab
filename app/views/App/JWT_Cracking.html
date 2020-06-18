@@ -1,0 +1,33 @@
+{{set . "title" "JWT Cracking"}}
+{{template "header.html" .}}
+
+<h1>JWT Cracking</h1>
+
+<p>Some story here that might be able to be scraped by CeWL to create a word list to crack the key.</p>
+
+<h2>Weak JWT Keys</h2>
+
+<p>
+The token is:
+<textarea class="jwt_textarea" id="generatedToken"></textarea>
+<input type="submit" value="Get New Token" id="get_token_button" />
+</p>
+
+<p>
+Test this token:
+<textarea class="jwt_textarea" id="testToken"></textarea>
+<input type="submit" value="Test" id="validate_token_button" />
+</p>
+
+<p id="header"></p>
+<p id="user"></p>
+<p id="level"></p>
+<p id="error"></p>
+
+<p>
+	<a href="/">Back to home</a>
+</p>
+
+<script src="/public/js/jwtcracking.js" type="text/javascript" charset="utf-8"></script>
+
+{{template "footer.html" .}}
