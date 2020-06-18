@@ -483,11 +483,22 @@ func (c App) JWT_Cracking() revel.Result {
 	return c.Render()
 }
 
-func getCrackingKey() []byte {
-	return []byte("hello")
+func getCrackingKey(difficulty string) []byte {
+	var keys map[string]string
+	keys = make(map[string]string)
+
+	keys[EASY] = "hello"
+	keys[MEDIUM] = "Hello"
+	keys[HARD] = "hello2020"
+
+	if val, ok := keys[difficulty]; ok {
+		return []byte(val)
+	} else {
+		return []byte(keys[EASY])
+	}
 }
 
-func (c App) JWT_Cracking_Get() revel.Result {
+func (c App) JWT_Cracking_Get(difficulty string) revel.Result {
 	iat := time.Now().Unix()
 
 	claims := jwt.MapClaims{
@@ -497,7 +508,7 @@ func (c App) JWT_Cracking_Get() revel.Result {
 	}
 	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	newTokenString, err := newToken.SignedString(getCrackingKey())
+	newTokenString, err := newToken.SignedString(getCrackingKey(difficulty))
 
 	data := make(map[string]interface{})
 
@@ -514,7 +525,7 @@ func (c App) JWT_Cracking_Get() revel.Result {
 	return c.RenderJSON(data)
 }
 
-func (c App) JWT_Cracking_Check() revel.Result {
+func (c App) JWT_Cracking_Check(difficulty string) revel.Result {
 	data := make(map[string]interface{})
 
 	bearer_header := c.Request.GetHttpHeader("Authorization")
@@ -535,25 +546,59 @@ func (c App) JWT_Cracking_Check() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	_, response := ParseJWTCrack(jwt)
+	fmt.Printf("Checking difficulty level: %s\n", difficulty)
+	_, response := ParseJWTCrack(jwt, difficulty)
 
 	return c.RenderJSON(response)
 }
 
-func getTokenCracking(token *jwt.Token) (interface{}, error) {
+func getTokenCrackingEasy(token *jwt.Token) (interface{}, error) {
 	// Don't forget to validate the alg is what you expect:
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 	}
 
-	return getCrackingKey(), nil
+	return getCrackingKey(EASY), nil
 }
 
-func ParseJWTCrack(tokenString string) (bool, jwtJSONResponse) {
+func getTokenCrackingMedium(token *jwt.Token) (interface{}, error) {
+	// Don't forget to validate the alg is what you expect:
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+	}
+
+	return getCrackingKey(MEDIUM), nil
+}
+
+func getTokenCrackingHard(token *jwt.Token) (interface{}, error) {
+	// Don't forget to validate the alg is what you expect:
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+	}
+
+	return getCrackingKey(HARD), nil
+}
+
+const EASY = "easy"
+const MEDIUM = "medium"
+const HARD = "hard"
+
+func ParseJWTCrack(tokenString string, difficulty string) (bool, jwtJSONResponse) {
 	var success bool = false
 	var response jwtJSONResponse
+	var err error
+	var token *jwt.Token
 
-	token, err := jwt.Parse(tokenString, getTokenCracking)
+	switch difficulty {
+	case EASY:
+		token, err = jwt.Parse(tokenString, getTokenCrackingEasy)
+	case MEDIUM:
+		token, err = jwt.Parse(tokenString, getTokenCrackingMedium)
+	case HARD:
+		token, err = jwt.Parse(tokenString, getTokenCrackingHard)
+	default:
+		token, err = jwt.Parse(tokenString, getTokenCrackingEasy)
+	}
 
 	if err != nil {
 		response.Message = fmt.Sprintf("Error: %s", err)

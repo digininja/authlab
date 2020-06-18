@@ -1,5 +1,10 @@
+function get_difficulty() {
+	let difficulty = document.getElementById ("difficulty").value
+	return difficulty;
+}
+
 function validate_token () {
-	var url = "/JWT_Cracking_Check"
+	var url = "/JWT_Cracking_Check?difficulty=" + get_difficulty()
 
 	let xhr = new XMLHttpRequest();
 	xhr.open("GET", url, true);
@@ -45,7 +50,7 @@ function validate_token () {
 }
 
 function get_token () {
-	var url = "/JWT_Cracking_Get"
+	var url = "/JWT_Cracking_Get?difficulty=" + get_difficulty()
 
 	let xhr = new XMLHttpRequest();
 	xhr.open("GET", url, true);
