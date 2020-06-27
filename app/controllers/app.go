@@ -490,6 +490,7 @@ func getCrackingKey(difficulty string) []byte {
 	keys[EASY] = "hello"
 	keys[MEDIUM] = "Hello"
 	keys[HARD] = "hello2020"
+	keys[CEWL] = "Palani"
 
 	if val, ok := keys[difficulty]; ok {
 		return []byte(val)
@@ -579,9 +580,19 @@ func getTokenCrackingHard(token *jwt.Token) (interface{}, error) {
 	return getCrackingKey(HARD), nil
 }
 
+func getTokenCrackingCewl(token *jwt.Token) (interface{}, error) {
+	// Don't forget to validate the alg is what you expect:
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+	}
+
+	return getCrackingKey(CEWL), nil
+}
+
 const EASY = "easy"
 const MEDIUM = "medium"
 const HARD = "hard"
+const CEWL = "obscure"
 
 func ParseJWTCrack(tokenString string, difficulty string) (bool, jwtJSONResponse) {
 	var success bool = false
@@ -596,6 +607,8 @@ func ParseJWTCrack(tokenString string, difficulty string) (bool, jwtJSONResponse
 		token, err = jwt.Parse(tokenString, getTokenCrackingMedium)
 	case HARD:
 		token, err = jwt.Parse(tokenString, getTokenCrackingHard)
+	case CEWL:
+		token, err = jwt.Parse(tokenString, getTokenCrackingCewl)
 	default:
 		token, err = jwt.Parse(tokenString, getTokenCrackingEasy)
 	}

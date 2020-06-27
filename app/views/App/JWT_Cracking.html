@@ -3,15 +3,42 @@
 
 <h1>Cracking JWT Keys</h1>
 
-<p>Some story here that might be able to be scraped by CeWL to create a word list to crack the key.</p>
+<p>
+A JWT is made up of three parts:
+</p>
+<ul>
+	<li>The header which gives information about how the JWT is constructed, as a minimum it specifies the method used to generate the signature.</li>
+	<li>The payload contains the claims, this is the authentication information the token is carrying, things such as a user ID or privilege levels.</li>
+	<li>The final segment is the signature, this is generated using the method specified in the header.</li>
+</ul>
+<p>
+When the signature is generated using a HMAC, the function generating the signature requires a secret key. If you can get that key in some way, either by stealing it from the server, guessing it, or brute forcing it, then you are able to sign your own tokens, which, in most cases, means you can make whatever modifications you want to the payload and the claims it contains.
+</p>
+<p>
+Unless you are really lucky and manage to get Local File Inclusion (LFI), or somehow get shell on the web server, your only real option on most tests is to try to brute force the key. One way to do this is to use a tool such as <a href="https://www.openwall.com/john/">John the Ripper</a> or <a href="https://hashcat.net/hashcat/">Hashcat</a> in the same way you would to crack password hashes acquired during a network test.
+</p>
+<p>
+This lab generates four levels of token, the first three with with a progressively stronger key, the last one with a more obscure key. All of the keys can be cracked on a standard workstation, none require a dedicated password cracking rig, the first three with commonly available word lists. For the last one, you may want to have a read about the <a href="https://1989thestory.com/">1998 Iron War</a> and have a think about some of my other tools.
+</p>
+<p>
+If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landjwtcrack">walkthrough</a>.
+</p>
 
 <h2>Weak JWT Keys</h2>
+
+<p>
+The challenge is simple, ask the server for a token, crack the key, update the claims, re-sign the JWT, submit the new token and hope that the server accepts it.
+</p>
+<p>
+The debugger on <a href="https://jwt.io/">JWT.IO</a> is a very useful tool for decoding and re-encoding tokens.
+</p>
 
 <label for="difficulty">Difficulty</label>:
 <select id="difficulty">
 	<option value="easy">Easy</option>
 	<option value="medium">Medium</option>
 	<option value="hard">Hard</option>
+	<option value="obscure">Obscure</option>
 </select>
 
 <p>
