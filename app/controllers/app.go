@@ -488,8 +488,8 @@ func getCrackingKey(difficulty string) []byte {
 	keys = make(map[string]string)
 
 	keys[EASY] = "hello"
-	keys[MEDIUM] = "Hello"
-	keys[HARD] = "hello2020"
+	keys[MEDIUM] = "Tiger"
+	keys[HARD] = "powerhouse2020"
 	keys[CEWL] = "Palani"
 
 	if val, ok := keys[difficulty]; ok {
