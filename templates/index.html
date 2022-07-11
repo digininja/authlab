@@ -1,0 +1,90 @@
+{{template "header.html" .}}
+
+<h1>Authentication Lab</h1>
+<p>
+	Welcome to the Authentication Lab, a place to play with some common, and some not so common, authentication and authorisation vulnerabilities.
+</p>
+<p>
+	I intend to grow the collection below as I come across new vulnerabilities while on client tests and as new ones are reported in the news. If you have something you would like to see added, <a href="mailto:robin@digi.ninja">let me know</a> and I'll see what I can do. The more information you can give me the better but I'll look at anything that seems interesting.
+</p>
+<p>
+	Each lab is stand alone and none of them, so far, require any special tools to complete the challenge. If you get stuck, or want more information, check out my <a href="https://digi.ninja/projects/authlab.php">Authentication Lab Walkthroughs</a> post.
+</p>
+<p>
+	
+</p>
+<h2>IP Based Auth Bypass</h2>
+<p>
+	Find the deliberate IP based authentication bypass.
+</p>
+<p>
+	<a href="/Bypass">Visit the challenge</a>
+</p>
+
+<h2>Timing Attacks</h2>
+<p>
+	Sometimes even the best login system can leak information through side-channels.
+</p>
+<p>
+	<a href="/Timing">Visit the challenge</a>
+</p>
+
+<h2>Client Side Auth</h2>
+<p>
+	Never trust anything coming from the user, especially authentication.
+</p>
+<p>
+	<a href="/ClientSide">Visit the challenge</a>
+</p>
+
+<h2>Leaky JWT</h2>
+<p>
+	See how easy it is to leak information in a JWT.
+</p>
+<p>
+	<a href="/Leaky_JWT">Visit the challenge</a>
+</p>
+
+<h2>CVE-2019-7644 - JWT Signature Disclosure</h2>
+<p>
+	Sometimes all it takes is a little information disclosure to break an authentication system.
+</p>
+<p>
+	<a href="/Auth1">Visit the challenge</a>
+</p>
+
+<h2>JWT None Algorithm</h2>
+<p>
+	Most JWT libraries allow you to choose either RSA or HMAC for signature verification however the spec allows for "None" to be specified meaning there is no signature in use.
+</p>
+<p>
+	<a href="/JWT_None">Visit the challenge</a>
+</p>
+
+<h2>Cracking JWT Keys</h2>
+<p>
+	Ideally the key used to sign a JWT should be a long random string, making it impossible to guess or crack, but this is not always the case. This lab presents a number of weak keys for you to investigate.
+</p>
+<p>
+	<a href="/JWT_Cracking">Visit the challenge</a>
+</p>
+
+<h2>User Agent Strings</h2>
+<p>
+	Most clients that talk to web apps will send a user agent string, unfortunately, some apps rely on this as a way to differentiate different type of user and allocate permissions based on it.
+</p>
+<p>
+	<a href="/UserAgent">Visit the challenge</a>
+</p>
+
+{{ if false }}
+<h2>Expired and Not Yet Valid JWTs</h2>
+<p>
+	JWTs can have start and end times, this challenge looks at those and helps you determine whether the given tokens are valid or not.
+</p>
+<p>
+	<a href="/Expired_JWT">Visit the challenge</a>
+</p>
+{{ end }}
+
+{{template "footer.html" .}}
