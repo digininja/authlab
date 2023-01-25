@@ -2,12 +2,13 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/revel/revel"
 	"html"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/revel/revel"
 )
 
 // For HMAC signing method, the key can be any []byte. It is recommended to generate
@@ -55,10 +56,10 @@ func contains(s []string, e string) bool {
 
 func (c App) Timing_Login(username, password string) revel.Result {
 	users := make([]string, 4)
-	users[0] = "zoe"
-	users[1] = "joe"
-	users[2] = "alex"
-	users[3] = "sarah"
+	users[0] = "jack"
+	users[1] = "adam"
+	users[2] = "alice"
+	users[3] = "sophia"
 
 	if contains(users, strings.ToLower(username)) {
 		time.Sleep(3000 * time.Millisecond)
