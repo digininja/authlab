@@ -10,44 +10,43 @@ For more information, see my <a href="https://digi.ninja/projects/authlab.php">p
 
 First you will need Go setup on your machine, I'll leave that up to you to work through as there are plenty of resources out there to help with that.
 
-Once you have a working version, you can get the lab by running:
+The next bit has changed since I first wrote the lab so this is what I think you need to do now, if there is a better way, a more "Go" way, please let me know.
+
+Check out my code:
 
 ```
-go get github.com/digininja/authlab
+mkdir -p ~/go/src/github.com/digininja/
+cd ~/go/src/github.com/digininja/
+git clone https://github.com/digininja/authlab.git
 ```
 
-You might get a warning about the lack of Go files, don't worry about this, it is not a problem.
-
-This will download the project into your go source directory, probably <code>~/go/src/github.com/digininja/authlab</code>. Change into that directory and run:
+Install the dependencies:
 
 ```
-go get -d ./...
+cd ~/go/src/github.com/digininja/authlab
+go mod tidy
+go install github.com/revel/cmd/revel@latest
+go get github.com/revel/modules/static
 ```
-
-This will download and install all the dependencies.
-
-The application uses the Revel framework to handle all the web stuff. At the moment, there is a bug which prevents it from working correctly the first time it is started up, to get round this, you need to run the binary as follows to set everything up correctly:
-
-```
-~/go/bin/revel version
-```
-
-Assuming this runs OK, and does not give any errors, you are good to go.
 
 ## Starting the lab
 
 You can start the lab with the following command:
 
 ```
-~/go/bin/revel run -a github.com/digininja/authlab/
+cd ~/go/src/github.com/digininja/authlab
+~/go/bin/revel run -a .
 ```
 
 Then browse to <http://localhost:9000>
 
+When I start it, I get a few errors and warnings. They don't seem to affect anything so I'll look into them at some point, but for now, I'm ignoring them as it all seems to be working.
+
 To start in production mode:
 
 ```
-~/go/bin/revel run -a github.com/digininja/authlab/ -m prod
+cd ~/go/src/github.com/digininja/authlab
+~/go/bin/revel run -a . -m prod
 ```
 
 ## Logrotate
