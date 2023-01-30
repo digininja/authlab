@@ -10,23 +10,19 @@ For more information, see my <a href="https://digi.ninja/projects/authlab.php">p
 
 First you will need Go setup on your machine, I'll leave that up to you to work through as there are plenty of resources out there to help with that.
 
-The next bit has changed since I first wrote the lab so this is what I think you need to do now, if there is a better way, a more "Go" way, please let me know.
+Next choose where to install the app, I'm going to install it in ~/apps, but the location is up to you and as long as you remember it, it doesn't matter.
 
 Check out my code:
 
 ```
-mkdir -p ~/go/src/github.com/digininja/
-cd ~/go/src/github.com/digininja/
+cd ~/apps/
 git clone https://github.com/digininja/authlab.git
 ```
 
-Install the dependencies:
+Install [Revel](https://github.com/revel/revel):
 
 ```
-cd ~/go/src/github.com/digininja/authlab
-go mod tidy
 go install github.com/revel/cmd/revel@latest
-go get github.com/revel/modules/static
 ```
 
 ## Starting the lab
@@ -34,13 +30,13 @@ go get github.com/revel/modules/static
 You can start the lab with the following command:
 
 ```
-cd ~/go/src/github.com/digininja/authlab
+cd ~/apps/authlab
 ~/go/bin/revel run -a .
 ```
 
-Then browse to <http://localhost:9000>
-
 When I start it, I get a few errors and warnings. They don't seem to affect anything so I'll look into them at some point, but for now, I'm ignoring them as it all seems to be working.
+
+You should now be able to access the lab by browsing to <http://localhost:9000>
 
 To start in production mode:
 
@@ -54,7 +50,7 @@ cd ~/go/src/github.com/digininja/authlab
 Set this up to do log rotation on prod otherwise the files will get huge:
 
 ```
-/xxxx/go/src/github.com/digininja/authlab/log/*.json {
+/xxxx/apps/authlab/log/*.json {
 	daily
 	rotate 7
 	missingok
@@ -83,6 +79,8 @@ logrotate --force /etc/logrotate.d/authlab
 
 This controls the app through `systemctl`, put the file in `/etc/systemd/system/authlab.service`.
 
+Replace xxxx with your user if running this from ~/apps. If running it from somewhere else, change the paths appropriately.
+
 ```
 [Unit]
 Description=Authlab Service
@@ -94,8 +92,8 @@ User=authlab
 Environment=PATH=/opt/go/bin:/xxxx/go/bin/:/opt/go/bin:/usr/local/bin:/usr/bin:/bin
 Environment=GOPATH=/xxxx/go/
 Environment=GOROOT=/opt/go/
-WorkingDirectory=/xxxx/go/src/github.com/digininja/authlab
-ExecStart=/xxxx/go/bin/revel run --application-path=github.com/digininja/authlab --run-mode=prod
+WorkingDirectory=/xxxx/apps/authlab
+ExecStart=/xxxx/go/bin/revel run --application-path=/home/xxxx/apps/authlab --run-mode=prod
 Restart=always
 RestartSec=3
 
