@@ -1,0 +1,64 @@
+{{set . "title" "Audience Array Bypass"}}
+{{template "header.html" .}}
+
+<h1>Audience Array Type Confusion (CVE-2020-26160)</h1>
+
+<p>
+    According to RFC 7519, the <code>aud</code> (Audience) claim can be either a single string or an array of strings. 
+    In vulnerable versions of <code>jwt-go</code>, extracting the audience claim using a string type assertion (<code>claims["aud"].(string)</code>) silently failed whenever an array was provided, causing the audience to evaluate to an empty string (<code>""</code>).
+</p>
+
+<p>
+    This endpoint simulates an <strong>Admin Console</strong>. The service checks the signature using an internal identity provider key (you cannot forge new tokens). Its authorization logic applies these rules:
+</p>
+<ul>
+    <li>Tokens intended for specific clients (like <code>public_api</code>) are strictly denied access.</li>
+    <li>Tokens with <strong>no audience specified</strong> (<code>""</code>) are grandfathered in as legacy internal admin tokens.</li>
+</ul>
+
+{{if .flash.error}}
+    <div class="alert alert-danger" style="color: red; font-weight: bold; margin-bottom: 1em;">
+        {{.flash.error}}
+    </div>
+{{end}}
+
+<h2>Available Signed Tokens</h2>
+<p>Both tokens below are legitimately signed by the identity provider:</p>
+
+<div style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; margin-bottom: 12px;">
+    <strong>1. Bob's Token (Single Audience):</strong><br />
+    <code>Payload: {"user": "bob", "aud": "public_api"}</code><br />
+    <textarea id="token-bob" rows="3" style="width: 100%; margin-top: 5px; font-family: monospace;" readonly>{{.publicToken}}</textarea>
+    <button type="button" onclick="loadToken('token-bob')">Use Bob's Token</button>
+</div>
+
+<div style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; margin-bottom: 20px;">
+    <strong>2. Alice's Token (Multi-Audience Array):</strong><br />
+    <code>Payload: {"user": "alice", "aud": ["billing_service", "reports_service"]}</code><br />
+    <textarea id="token-alice" rows="3" style="width: 100%; margin-top: 5px; font-family: monospace;" readonly>{{.billingToken}}</textarea>
+    <button type="button" onclick="loadToken('token-alice')">Use Alice's Token</button>
+</div>
+
+<h2>Submit to Admin Console</h2>
+{{if .flash.success}}
+    <div class="alert alert-success" style="color: green; font-weight: bold; margin-bottom: 1em;">
+        {{.flash.success}}
+    </div>
+{{end}}
+<form method="post" action="/Audience_Check">
+    <label for="jwt">JWT Token:</label><br />
+    <textarea id="jwt" name="jwt" rows="4" style="width: 100%; font-family: monospace;" required></textarea><br /><br />
+    <input type="submit" value="Authenticate to Admin Console" />
+</form>
+
+<script>
+function loadToken(elementId) {
+    document.getElementById('jwt').value = document.getElementById(elementId).value;
+}
+</script>
+
+<p style="margin-top: 20px;">
+    <a href="/">Back to home</a>
+</p>
+
+{{template "footer.html" .}}

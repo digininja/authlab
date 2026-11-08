@@ -131,8 +131,8 @@ func (vr *ViewRenderer) Render(w http.ResponseWriter, r *http.Request, viewPath 
 				Flash:      flashVal,
 			}
 		},
-		"raw": func(s string) template.HTML {
-			return template.HTML(s)
+		"raw": func(s any) template.HTML {
+			return template.HTML(fmt.Sprintf("%v", s))
 		},
 		"url": func(path string) string {
 			return path
@@ -566,6 +566,87 @@ func main() {
 		_, response := ParseJWTNone(jwtToken)
 		renderJSON(w, response)
 	})
+
+	// Protected internal endpoint requiring aud="internal_service" (Signature check intentionally disabled)
+	// --- AUD Array Bypass Lab (CVE-2020-26160) ---
+
+	var audSecretKey = []byte("super_secret_idp_signing_key_that_user_does_not_know")
+
+	r.Get("/Audience_Bypass", func(w http.ResponseWriter, r *http.Request) {
+		// 1. A token meant ONLY for billing (as an array of services)
+		// The user CANNOT tamper with this token because they don't know audSecretKey.
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"user": "alice",
+			"aud":  []string{"billing_service", "reports_service"},
+		})
+		tokenString, _ := token.SignedString(audSecretKey)
+
+		// 2. A normal single-string token meant for public_api
+		singleAudToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"user": "bob",
+			"aud":  "public_api",
+		})
+		singleAudTokenString, _ := singleAudToken.SignedString(audSecretKey)
+
+		renderer.Render(w, r, "App/Audience_Bypass.html", map[string]any{
+			"billingToken": tokenString,
+			"publicToken":  singleAudTokenString,
+		})
+	})
+
+	r.Post("/Audience_Check", func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		tokenStr := r.FormValue("jwt")
+
+		// Signature verification is fully enforced!
+		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method")
+			}
+			return audSecretKey, nil
+		})
+
+		if err != nil || !token.Valid {
+			setFlash(w, "error", "Invalid signature! You cannot forge tokens without the IdP key.")
+			http.Redirect(w, r, "/Audience_Bypass", http.StatusFound)
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			setFlash(w, "error", "Could not parse claims")
+			http.Redirect(w, r, "/Audience_Bypass", http.StatusFound)
+			return
+		}
+
+		// CVE-2020-26160 type-confusion bug:
+		var audString string
+		if rawAud, exists := claims["aud"]; exists {
+			if s, ok := rawAud.(string); ok {
+				audString = s
+			} else {
+				// Array type assertion fails, silently drops to ""
+				audString = ""
+			}
+		}
+
+		// Target service: Admin Console
+		// Rule:
+		// - Direct string audience must match "admin_console"
+		// - Specific audiences like "public_api" are rejected
+		// - Tokens with NO audience (aud == "") are grandfathered in as legacy admin tokens
+		if audString == "admin_console" {
+			setFlash(w, "success", "Admin access granted!")
+		} else if audString == "" {
+			// Exploit triggered!
+			setFlash(w, "success", "Bypass successful! The multi-audience billing token collapsed to aud=\"\", granting grandfathered admin access.")
+		} else {
+			setFlash(w, "error", fmt.Sprintf("Access Denied: Audience is '%s', which is not authorized for the Admin Console.", html.EscapeString(audString)))
+		}
+
+		http.Redirect(w, r, "/Audience_Bypass", http.StatusFound)
+	})
+
 
 	fmt.Printf("Authlab running on http://localhost:%s\n", port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {

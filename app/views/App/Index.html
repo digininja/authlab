@@ -70,6 +70,15 @@
 	<a href="/UserAgent">Visit the challenge</a>
 </p>
 
+
+<h2>Audience Array Bypass (CVE-2020-26160)</h2>
+<p>
+	jwt-go before 4.0.0-preview1 allows attackers to bypass intended access restrictions in situations with []string{} for m["aud"] (which is allowed by the specification). Because the type assertion fails, "" is the value of aud. This is a security problem if the JWT token is presented to a service that lacks its own audience check. <em>Taken from <a href="https://nvd.nist.gov/vuln/detail/cve-2020-26160">NIST CVE description</a></em>
+</p>
+<p>
+	<a href="/Audience_Bypass">Visit the challenge</a>
+</p>
+
 {{ if false }}
 <h2>Expired and Not Yet Valid JWTs</h2>
 <p>
