@@ -6,7 +6,18 @@ You can play the latest version of all the challenges in my <a href="https://aut
 
 For more information, see my <a href="https://digi.ninja/projects/authlab.php">project page</a>. This also contains more information and walkthroughs for all the labs in case you get stuck.
 
+## Docker Image
+
+The pre-built image is published to GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/digininja/authlab:latest
+docker run -d -p 9000:9000 ghcr.io/digininja/authlab:latest
+```
+
 ## Installation
+
+**This needs rewriting as I've just updated a lot of the dependencies. I've still got work to do so will update it all at once. For now, use the Docker image mentioned above.**
 
 First you will need Go setup on your machine, I'll leave that up to you to work through as there are plenty of resources out there to help with that.
 
