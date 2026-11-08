@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -13,8 +14,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"errors"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5" // <-- Changed from dgrijalva/jwt-go
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -198,19 +200,20 @@ func ParseJWT(tokenString string) (bool, string) {
 			message = fmt.Sprintf("Welcome %s (%s)", claims["user"], claims["level"])
 			success = true
 		}
-	} else if ve, ok := err.(*jwt.ValidationError); ok {
-		if ve.Errors&jwt.ValidationErrorSignatureInvalid != 0 {
-			newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, token.Claims)
+	} else if errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+		// Preserving the intentional signature leak vulnerability
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 			newTokenString, _ := newToken.SignedString(hmacSampleSecret)
 
 			newParsedToken, _ := jwt.Parse(newTokenString, getToken)
 
 			message = fmt.Sprintf("Invalid signature. Expected %s got %s", newParsedToken.Signature, token.Signature)
-		} else if ve.Errors&jwt.ValidationErrorMalformed != 0 {
-			message = fmt.Sprintln("That's not even a token")
 		} else {
-			fmt.Sprintln("Couldn't handle this token:", err)
+			message = fmt.Sprintf("Invalid signature, but could not parse claims: %s", err)
 		}
+	} else if errors.Is(err, jwt.ErrTokenMalformed) {
+		message = fmt.Sprintln("That's not even a token")
 	} else {
 		message = fmt.Sprintf("There was an error parsing the token: %s", err.Error())
 	}
@@ -230,12 +233,14 @@ func getTokenNone(token *jwt.Token) (interface{}, error) {
 
 type SigningMethodNone struct{}
 
-func (j SigningMethodNone) Verify(signingString, signature string, key interface{}) error {
+func (j SigningMethodNone) Verify(signingString string, signature []byte, key any) error {
 	return nil
 }
-func (j SigningMethodNone) Sign(signingString string, key interface{}) (string, error) {
-	return "", nil
+
+func (j SigningMethodNone) Sign(signingString string, key any) ([]byte, error) {
+	return []byte(""), nil
 }
+
 func (j SigningMethodNone) Alg() string {
 	return "None"
 }
@@ -258,15 +263,53 @@ type jwtNoneResponse struct {
 	Message string `json:"Message"`
 }
 
+type CustomNoneMethod struct {
+	alg string
+}
+
+func (j CustomNoneMethod) Verify(signingString string, signature []byte, key any) error {
+	return nil
+}
+
+func (j CustomNoneMethod) Sign(signingString string, key any) ([]byte, error) {
+	return []byte(""), nil
+}
+
+func (j CustomNoneMethod) Alg() string {
+	return j.alg
+}
+
 func ParseJWTNone(tokenString string) (bool, jwtNoneResponse) {
-	var algorithm string = ""
 	var response jwtNoneResponse
 
-	jwt.RegisterSigningMethod("noNe", getSigningMethodNone)
-	jwt.RegisterSigningMethod("NoNe", getSigningMethodNone)
-	jwt.RegisterSigningMethod("None", getSigningMethodNone)
-	jwt.RegisterSigningMethod("NONE", getSigningMethodNone)
+	// 1. Peek at raw header
+	parts := strings.Split(tokenString, ".")
+	if len(parts) >= 1 {
+		headerBytes, err := base64.RawURLEncoding.DecodeString(parts[0])
+		if err == nil {
+			var hdr struct {
+				Alg string `json:"alg"`
+			}
+			if err := json.Unmarshal(headerBytes, &hdr); err == nil && hdr.Alg != "" {
+				// Immediate rejection: if it is strictly lowercase "none", reject right away
+				if hdr.Alg == "none" {
+					response.Message = "'none' signature type is not allowed"
+					response.Success = false
+					return false, response
+				}
 
+				// If it's a mixed/uppercase variation of "none", register it dynamically
+				if strings.EqualFold(hdr.Alg, "none") {
+					algName := hdr.Alg
+					jwt.RegisterSigningMethod(algName, func() jwt.SigningMethod {
+						return CustomNoneMethod{alg: algName}
+					})
+				}
+			}
+		}
+	}
+
+	// 2. Parse unverified
 	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
 	if err != nil {
 		response.Message = fmt.Sprintf("Error parsing token: %s", err)
@@ -280,23 +323,26 @@ func ParseJWTNone(tokenString string) (bool, jwtNoneResponse) {
 		return false, response
 	}
 
-	algorithm = token.Method.Alg()
+	algorithm := token.Method.Alg()
 
-	if strings.EqualFold(algorithm, "none") {
-		if algorithm == "none" {
-			response.Message = "'none' signature type is not allowed"
-			response.Success = false
-			return false, response
-		}
-	} else if !token.Valid {
+	// 3. Fallback check: ensure lowercase "none" cannot slip through via token.Method
+	if algorithm == "none" {
+		response.Message = "'none' signature type is not allowed"
+		response.Success = false
+		return false, response
+	}
+
+	// If it's not a case variation of "none", run standard HMAC signature verification
+	if !strings.EqualFold(algorithm, "none") && !token.Valid {
 		token, err = jwt.Parse(tokenString, getTokenNone)
-		if !token.Valid {
+		if err != nil || !token.Valid {
 			response.Message = "Invalid signature"
 			response.Success = false
 			return false, response
 		}
 	}
 
+	// 4. Extract claims
 	claims, success := extractClaims(token)
 	if !success {
 		response.Message = "Error parsing claims"
@@ -308,7 +354,7 @@ func ParseJWTNone(tokenString string) (bool, jwtNoneResponse) {
 	var level string
 
 	if val, ok := claims["user"]; ok {
-		user = val.(string)
+		user = fmt.Sprintf("%v", val)
 	} else {
 		response.Message = "User not provided"
 		response.Success = false
@@ -316,7 +362,7 @@ func ParseJWTNone(tokenString string) (bool, jwtNoneResponse) {
 	}
 
 	if val, ok := claims["level"]; ok {
-		level = val.(string)
+		level = fmt.Sprintf("%v", val)
 	} else {
 		response.Message = "Level not provided"
 		response.Success = false
