@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  authlab:
+    build: .
+    container_name: authlab
+    ports:
+      - "9000:9000"
+    environment:
+      - PORT=9000
+    restart: unless-stopped
