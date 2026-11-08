@@ -53,7 +53,14 @@ func getAndClearFlash(w http.ResponseWriter, r *http.Request) map[string]string 
 	return flash
 }
 
-// --- View Renderer ---
+type Field struct {
+	Name       string
+	Value      string
+	Id         string
+	Error      string
+	ErrorClass string
+	Flash      string
+}
 
 type ViewRenderer struct {
 	viewsDir string
@@ -73,7 +80,6 @@ func (vr *ViewRenderer) Render(w http.ResponseWriter, r *http.Request, viewPath 
 		data["success"] = successVal
 	}
 
-	// Revel template helpers: set, append, raw, field, etc.
 	funcMap := template.FuncMap{
 		"set": func(renderArgs map[string]any, key string, value any) template.HTML {
 			renderArgs[key] = value
@@ -89,6 +95,40 @@ func (vr *ViewRenderer) Render(w http.ResponseWriter, r *http.Request, viewPath 
 			renderArgs[key] = []any{value}
 			return ""
 		},
+		// Fixed field helper: ensures Value/Flash are strictly strings and never stringify the context/map
+		"field": func(name string, renderArgs any) *Field {
+			val := ""
+			flashVal := ""
+
+			if m, ok := renderArgs.(map[string]any); ok {
+				if v, exists := m[name]; exists {
+					// Only use string/primitive types, ignore complex maps/templates
+					switch t := v.(type) {
+					case string:
+						val = t
+					case int, int64, float64, bool:
+						val = fmt.Sprintf("%v", t)
+					}
+				}
+				if f, exists := m["flash"].(map[string]string); exists {
+					if fv, fExists := f[name]; fExists {
+						flashVal = fv
+						if val == "" {
+							val = fv
+						}
+					}
+				}
+			}
+
+			return &Field{
+				Name:       name,
+				Value:      val,
+				Id:         name,
+				Error:      "",
+				ErrorClass: "",
+				Flash:      flashVal,
+			}
+		},
 		"raw": func(s string) template.HTML {
 			return template.HTML(s)
 		},
@@ -103,24 +143,21 @@ func (vr *ViewRenderer) Render(w http.ResponseWriter, r *http.Request, viewPath 
 	header := filepath.Join(vr.viewsDir, "header.html")
 	footer := filepath.Join(vr.viewsDir, "footer.html")
 	target := filepath.Join(vr.viewsDir, viewPath)
+	targetBase := filepath.Base(target)
 
-	tmpl, err := template.New(filepath.Base(viewPath)).Funcs(funcMap).ParseFiles(header, target, footer)
+	// Parse header, target, and footer together into one set
+	tmpl, err := template.New(targetBase).Funcs(funcMap).ParseFiles(header, target, footer)
 	if err != nil {
-		var fallbackErr error
-		tmpl, fallbackErr = template.New(filepath.Base(viewPath)).Funcs(funcMap).ParseFiles(target)
-		if fallbackErr != nil {
-			log.Printf("Template parsing error: %v (fallback: %v)", err, fallbackErr)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
+		log.Printf("Template parsing error: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// If the template files define a named base template or standard block:
-	if err := tmpl.Execute(w, data); err != nil {
-		if execErr := tmpl.ExecuteTemplate(w, filepath.Base(target), data); execErr != nil {
-			log.Printf("Template execution error: %v", execErr)
-		}
+
+	// Crucial: Execute targetBase specifically, NOT the root template set
+	if err := tmpl.ExecuteTemplate(w, targetBase, data); err != nil {
+		log.Printf("Template execution error: %v", err)
 	}
 }
 
