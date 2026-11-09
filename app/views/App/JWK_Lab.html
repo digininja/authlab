@@ -8,6 +8,12 @@
     If the server verifies tokens using this header without checking against a trusted key store or whitelist, an attacker can embed their own public key and sign with their own private key.
 </p>
 
+<p>
+	If you get stuck, or want more information, see my <a href="https://digi.ninja/projects/authlab.php#landjwk">walkthrough</a>.
+</p>
+
+<h2>Sample Token (Guest)</h2>
+
 {{if .flash.error}}
     <div class="error">
         {{.flash.error}}
@@ -19,7 +25,6 @@
     </div>
 {{end}}
 
-<h2>Sample Token (Guest)</h2>
 <p>Inspect the header to examine the embedded <code>jwk</code> object:</p>
 <textarea id="token_sample" class="jwt_textarea" readonly>{{.sampleToken}}</textarea>
 <br />
