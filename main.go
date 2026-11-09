@@ -497,7 +497,7 @@ func main() {
 	r.Get("/Bypass", func(w http.ResponseWriter, r *http.Request) {
 		forwarded := getClientIP(r)
 		loggedIn := forwarded == "192.168.0.14"
-		// loggedIn := strings.Contains(forwarded, "192.168.0.14")
+
 		renderer.Render(w, r, "App/Bypass.html", map[string]any{
 			"forwarded": forwarded,
 			"logged_in": loggedIn,
