@@ -2,6 +2,7 @@ services:
   authlab:
     build: .
     container_name: authlab
+    image: ghcr.io/digininja/authlab:latest
     ports:
       - "9000:9000"
     environment:
