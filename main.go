@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"html/template"
@@ -14,13 +15,11 @@ import (
 	"regexp"
 	"strings"
 	"time"
-	"errors"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/digininja/authlab/app/controllers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/digininja/authlab/app/controllers"
-
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var hmacSampleSecret []byte
