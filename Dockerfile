@@ -7,9 +7,12 @@ WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source code and build
+# Copy source code including app/ and main.go
 COPY main.go ./
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o authlab main.go
+COPY app/ ./app/
+
+# Build the current module package
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o authlab .
 
 # Stage 2: Minimal runtime environment
 FROM alpine:3.20
