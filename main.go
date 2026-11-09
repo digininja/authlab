@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"net"
 	"fmt"
 	"html"
 	"html/template"
@@ -22,6 +23,39 @@ import (
 )
 
 var hmacSampleSecret []byte
+
+func getClientIP(r *http.Request) string {
+	// 1. Check X-Forwarded-For first
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff != "" {
+		ips := strings.Split(xff, ",")
+		firstIP := strings.TrimSpace(ips[0])
+		if firstIP != "" {
+			return firstIP
+		}
+	}
+
+	// 2. Cloudflare-specific header
+	if cfIP := strings.TrimSpace(r.Header.Get("CF-Connecting-IP")); cfIP != "" {
+		return cfIP
+	}
+
+	// 3. Alternative proxy headers
+	if xri := strings.TrimSpace(r.Header.Get("X-Real-IP")); xri != "" {
+		return xri
+	}
+	if tci := strings.TrimSpace(r.Header.Get("True-Client-IP")); tci != "" {
+		return tci
+	}
+
+	// 4. Socket address fallback
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err == nil {
+		return strings.TrimSpace(host)
+	}
+
+	return strings.TrimSpace(r.RemoteAddr)
+}
 
 // --- Flash Message Utilities (Cookie-based, mimicking Revel) ---
 
@@ -461,7 +495,7 @@ func main() {
 
 	// Bypass
 	r.Get("/Bypass", func(w http.ResponseWriter, r *http.Request) {
-		forwarded := r.Header.Get("X-Forwarded-For")
+		forwarded := getClientIP(r)
 		loggedIn := forwarded == "192.168.0.14"
 		// loggedIn := strings.Contains(forwarded, "192.168.0.14")
 		renderer.Render(w, r, "App/Bypass.html", map[string]any{
