@@ -17,9 +17,11 @@ import (
 	"time"
 	"errors"
 
-	"github.com/golang-jwt/jwt/v5" // <-- Changed from dgrijalva/jwt-go
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/digininja/authlab/app/controllers"
+
 )
 
 var hmacSampleSecret []byte
@@ -681,6 +683,8 @@ func main() {
 		http.Redirect(w, r, "/Audience_Bypass", http.StatusFound)
 	})
 
+	// If your renderer is a struct like renderer.Render:
+	controllers.RegisterJWKRoutes(r, renderer.Render, setFlash)
 
 	fmt.Printf("Authlab running on http://localhost:%s\n", port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
