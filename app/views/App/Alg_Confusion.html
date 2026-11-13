@@ -1,0 +1,42 @@
+{{set . "title" "JWT Algorithm Confusion (RS256 to HS256)"}}
+{{template "header.html" .}}
+
+<h1>JWT Algorithm Confusion (RS256 &rarr; HS256)</h1>
+
+<p>
+    Asymmetric algorithms like <code>RS256</code> sign tokens with a private key and verify them with a public key, whereas symmetric algorithms like <code>HS256</code> use a single shared secret for both signing and verification.
+    If an application exposes its RSA public key and fails to enforce the expected algorithm, an attacker can switch <code>alg</code> to <code>HS256</code> and sign a forged token using the server's public key as the HMAC secret.
+</p>
+
+<p>
+    In real-world targets, servers rarely hand you a ready-made PEM file—instead, they expose the raw modulus (<code>n</code>) and exponent (<code>e</code>) via <a href="/.well-known/jwks.json" target="_blank"><code>/.well-known/jwks.json</code></a>.
+    For extra practice, try reconstructing this PKIX PEM file from the JWKS endpoint and verify that your output matches the reference key below byte-for-byte (including the trailing newline).
+</p>
+
+<h2>Server Public Key (PEM)</h2>
+
+<p>Available directly or via <a href="/Alg_Confusion/public.pem" target="_blank"><code>/Alg_Confusion/public.pem</code></a>:</p>
+<textarea id="public_pem" class="jwt_textarea" readonly>{{.publicPEM}}</textarea>
+
+<h2>Sample Token (Guest - RS256)</h2>
+<textarea id="token_sample" rows="4" class="jwt_textarea" readonly>{{.sampleToken}}</textarea>
+<br />
+<button type="button" id="button_load_sample">Load into Form</button>
+
+<h2>Submit Token</h2>
+
+{{template "flash.html" .}}
+
+<form method="post" action="/Alg_Confusion_Check">
+    <label for="jwt">Enter Admin Token:</label><br />
+    <textarea id="jwt" name="jwt" class="jwt_textarea" required></textarea><br /><br />
+    <input type="submit" value="Verify & Authenticate" />
+</form>
+
+<p>
+    <a href="/">Back to home</a>
+</p>
+
+<script src="/public/js/jku.js"></script>
+
+{{template "footer.html" .}}

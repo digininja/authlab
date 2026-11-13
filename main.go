@@ -641,6 +641,7 @@ func main() {
 	controllers.RegisterJWKRoutes(r, renderer.Render, setFlash)
 	controllers.RegisterIPBypassRoutes(r, renderer.Render, setFlash)
 	controllers.RegisterJKURoutes(r, renderer.Render, setFlash)
+	controllers.RegisterAlgConfusionRoutes(r, renderer.Render, setFlash)
 
 	fmt.Printf("Authlab running on http://localhost:%s\n", port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
