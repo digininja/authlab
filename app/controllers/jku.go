@@ -3,6 +3,7 @@ package controllers
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"net/url"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -106,8 +107,26 @@ func handleJKUCheck(w http.ResponseWriter, r *http.Request, setFlash FlashFunc) 
 		}
 
 		// Fetch remote JWKS with a short timeout to prevent hanging workers
+
+		jkuURL, ok = token.Header["jku"].(string)
+		if !ok || strings.TrimSpace(jkuURL) == "" {
+			return nil, errors.New("missing or invalid 'jku' header")
+		}
+
+		// If the jku points to this server's public host, route internally over HTTP
+		// so Docker doesn't fail on hairpin NAT / reverse-proxy TLS termination
+		fetchURL := jkuURL
+		if parsed, parseErr := url.Parse(jkuURL); parseErr == nil {
+			if strings.EqualFold(parsed.Host, r.Host) {
+				parsed.Scheme = "http"
+				parsed.Host = "127.0.0.1:9000"
+				fetchURL = parsed.String()
+			}
+		}
+
 		client := &http.Client{Timeout: 5 * time.Second}
-		resp, err := client.Get(jkuURL)
+		resp, err := client.Get(fetchURL)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch JWKS from %s: %v", jkuURL, err)
 		}
