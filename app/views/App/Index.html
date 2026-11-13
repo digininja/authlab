@@ -94,8 +94,13 @@ Exploit an unvalidated <code>jku</code> header to make the server fetch public k
 	<a href="/JKU_Lab">Visit the challenge</a>
 </p>
 
-    <a href="/Alg_Confusion">JWT Algorithm Confusion (RS256 &rarr; HS256)</a> - Exploit weak algorithm validation by signing an <code>HS256</code> token with the server's RSA public key.
-
+<h2>JWT Algorithm Confusion (RS256 → HS256)</h2>
+<p>
+Take advantage of algorithm confusion by using a published public key as a symmetric to sign the JWT using HS256 rather then RS256.
+</p>
+<p>
+	<a href="/Alg_Confusion">Visit the challenge</a>
+</p>
 
 {{ if false }}
 <h2>Expired and Not Yet Valid JWTs</h2>
