@@ -1,15 +1,15 @@
 {{if .flash.success}}
-<div class="alert alert-success">
+<div class="success">
 	{{.flash.success}}
 </div>
 {{end}}
 
 {{if or .errors .flash.error}}
-<div class="alert alert-danger">
+<div class="error">
 	{{if .flash.error}}
 		{{.flash.error}}
 	{{end}}
-	<ul style="margin-top:10px;">
+	<ul>
 		{{range .errors}}
 			<li>{{.}}</li>
 		{{end}}

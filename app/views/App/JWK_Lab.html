@@ -14,16 +14,7 @@
 
 <h2>Sample Token (Guest)</h2>
 
-{{if .flash.error}}
-    <div class="error">
-        {{.flash.error}}
-    </div>
-{{end}}
-{{if .flash.success}}
-    <div class="success">
-        {{.flash.success}}
-    </div>
-{{end}}
+{{template "flash.html" .}}
 
 <p>Inspect the header to examine the embedded <code>jwk</code> object:</p>
 <textarea id="token_sample" class="jwt_textarea" readonly>{{.sampleToken}}</textarea>

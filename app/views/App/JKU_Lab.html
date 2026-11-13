@@ -1,0 +1,33 @@
+{{set . "title" "JKU Header Injection"}}
+{{template "header.html" .}}
+
+<h1>JKU (JWK Set URL) Header Injection</h1>
+
+<p>
+    The <code>jku</code> header parameter specifies a URL pointing to a JSON Web Key Set (JWKS) containing the public keys used to verify the token signature.
+    If the server fetches keys from arbitrary URLs without enforcing a strict domain allowlist, an attacker can host their own <code>jwks.json</code> file and forge administrative tokens.
+</p>
+
+<h2>Sample Token (Guest)</h2>
+<p>This token references the server's public key set at <a href="{{.jwksURL}}" target="_blank"><code>{{.jwksURL}}</code></a>:</p>
+<textarea id="token_sample" class="jwt_textarea" readonly>{{.sampleToken}}</textarea>
+<br />
+<button type="button" id="button_load_sample">Load into Form</button>
+
+<h2>Submit Token</h2>
+
+{{template "flash.html" .}}
+
+<form method="post" action="/JKU_Check">
+    <label for="jwt">Enter Admin Token:</label><br />
+    <textarea id="jwt" name="jwt" class="jwt_textarea" required></textarea><br /><br />
+    <input type="submit" value="Verify & Authenticate" />
+</form>
+
+<p>
+    <a href="/">Back to home</a>
+</p>
+
+<script src="/public/js/jku.js"></script>
+
+{{template "footer.html" .}}

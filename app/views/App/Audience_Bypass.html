@@ -34,17 +34,9 @@
 </div>
 
 <h2>Submit to Admin Console</h2>
-{{if .flash.success}}
-    <p><strong>
-        {{.flash.success}}
-    </strong></p>
-{{end}}
 
-{{if .flash.error}}
-    <div class="error">
-        {{.flash.error}}
-    </div>
-{{end}}
+{{template "flash.html" .}}
+
 <form method="post" action="/Audience_Check">
     <label for="jwt">JWT Token:</label><br />
     <textarea id="jwt" name="jwt" class="jwt_textarea" required></textarea><br /><br />

@@ -145,11 +145,12 @@ func (vr *ViewRenderer) Render(w http.ResponseWriter, r *http.Request, viewPath 
 
 	header := filepath.Join(vr.viewsDir, "header.html")
 	footer := filepath.Join(vr.viewsDir, "footer.html")
+	flash_template := filepath.Join(vr.viewsDir, "flash.html")
 	target := filepath.Join(vr.viewsDir, viewPath)
 	targetBase := filepath.Base(target)
 
 	// Parse header, target, and footer together into one set
-	tmpl, err := template.New(targetBase).Funcs(funcMap).ParseFiles(header, target, footer)
+	tmpl, err := template.New(targetBase).Funcs(funcMap).ParseFiles(header, target, footer, flash_template)
 	if err != nil {
 		log.Printf("Template parsing error: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -639,6 +640,7 @@ func main() {
 
 	controllers.RegisterJWKRoutes(r, renderer.Render, setFlash)
 	controllers.RegisterIPBypassRoutes(r, renderer.Render, setFlash)
+	controllers.RegisterJKURoutes(r, renderer.Render, setFlash)
 
 	fmt.Printf("Authlab running on http://localhost:%s\n", port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
